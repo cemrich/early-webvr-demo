@@ -23,4 +23,4 @@ the moment.
 
 [ff-cube-demo]: http://people.mozilla.com/~vladimir/vr/cubes.html
 [firefox-vr]: http://blog.bitops.com/blog/2014/06/26/first-steps-for-vr-on-the-web/
-[chroumium-vr]: http://blog.tojicode.com/2014/07/bringing-vr-to-chrome.html
+[chromium-vr]: http://blog.tojicode.com/2014/07/bringing-vr-to-chrome.html
