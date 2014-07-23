@@ -1,5 +1,5 @@
 // main container where the rendering takes place
-var container;
+var canvas;
 
 // important three.js globals
 // wee need two cameras - one for each eye
@@ -23,12 +23,20 @@ var vrHMD = null, vrPosDev = null, vrEnabled = false;
  */
 function start() {
   document.addEventListener("mozfullscreenchange", onFullscreenChanged, false);
+  document.addEventListener("webkitfullscreenchange", onFullscreenChanged, false);
   initScene();
   setRenderSize(renderWidth, renderHeight, false);
-  if (navigator.mozGetVRDevices)
+  
+  if (navigator.getVRDevices) {
+    // chromium or similar
+    navigator.getVRDevices().then(vrDeviceCallback);
+  } else if (navigator.mozGetVRDevices) {
+    // firefox
     navigator.mozGetVRDevices(vrDeviceCallback);
-  else
+  } else {
+    // no vr support
     animate();
+  }
 }
 
 window.addEventListener("load", start, false);
@@ -38,7 +46,7 @@ window.addEventListener("load", start, false);
  * Setup all three.js and view related stuff.
  */
 function initScene() {
-  container = document.getElementById("container");
+  var container = document.getElementById("container");
 
   camera = new THREE.PerspectiveCamera( 60, renderWidth / renderHeight, 1, 10000 );
   camera.position.z = 500;
@@ -72,6 +80,7 @@ function initScene() {
   renderer.setSize(renderWidth, renderHeight);
   renderer.domElement.setAttribute("id", "three_canvas");
   container.appendChild( renderer.domElement );
+  canvas = renderer.domElement;
 }
 
 /*
@@ -90,15 +99,15 @@ function setRenderSize(width, height, vrEnabled) {
     cameraRight.position.add(new THREE.Vector3(rightTx.x, rightTx.y, rightTx.z));
 
     renderer.setSize(width * 2, height, true, 2);
-    container.style.width = (width * 2) + "px";
-    container.style.height = height + "px";
+    canvas.style.width = (width * 2) + "px";
+    canvas.style.height = height + "px";
   } else {
     camera.aspect = renderWidth / renderHeight;
     camera.updateProjectionMatrix();
 
     renderer.setSize(width, height);
-    container.style.width = width + "px";
-    container.style.height = height + "px";
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
   }
 
   renderWidth = width;
@@ -186,8 +195,14 @@ function toggleFullscreen() {
     alert("no HMD found");
     return;
   }
-
-  container.mozRequestFullScreen({ vrDisplay: vrHMD });
+  
+  if (canvas.webkitRequestFullscreen) {
+    // chromium
+    canvas.webkitRequestFullscreen({ vrDisplay: vrHMD });
+  } else if (canvas.mozRequestFullScreen) {
+    // firefox
+    canvas.mozRequestFullScreen({ vrDisplay: vrHMD });
+  }
 }
 
 /*
@@ -195,7 +210,7 @@ function toggleFullscreen() {
  * vr mode or back.
  */
 function onFullscreenChanged() {
-  if (document.mozFullScreenElement) {
+  if (document.mozFullScreenElement || document.webkitFullscreenElement) {
     renderWidth = (window.innerWidth / 2);
     renderHeight = (window.innerHeight);
     vrEnabled = true;
