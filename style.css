@@ -6,8 +6,25 @@ body {
 }
 
 #container {
-  position: absolute;
-  top: 50px;
-  left: 50px;
+  text-align: center;
+}
+
+#container canvas {
   border: 1px solid black;
+}
+
+#info {
+  padding: 15px 50px;
+  background-color: #ccc;
+  font-weight: bold;
+}
+
+#info ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+#info span {
+  font-weight: normal;
+  font-family: Fixed, monospace;
 }

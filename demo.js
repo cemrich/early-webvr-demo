@@ -13,6 +13,17 @@ var winRenderHeight = winRenderWidth * (1080/1920); // window.innerHeight;
 var renderWidth = winRenderWidth;
 var renderHeight = winRenderHeight;
 
+// status output
+var statusHeadline = document.querySelector("#info h1");
+var leftTranslationOutput = document.getElementById("leftTranslation");
+var rightTranslationOutput = document.getElementById("rightTranslation");
+var orientationOutput = document.getElementById("orientation");
+var positionOutput = document.getElementById("position");
+var angularVelocityOutput = document.getElementById("angularVelocity");
+var linearVelocityOutput = document.getElementById("linearVelocity");
+var angularAccelerationOutput = document.getElementById("angularAcceleration");
+var linearAccelerationOutput = document.getElementById("linearAcceleration");
+
 // globals related to VR devices
 var vrHMD = null, vrPosDev = null, vrEnabled = false;
 
@@ -25,7 +36,6 @@ function start() {
   document.addEventListener("mozfullscreenchange", onFullscreenChanged, false);
   document.addEventListener("webkitfullscreenchange", onFullscreenChanged, false);
   initScene();
-  setRenderSize(renderWidth, renderHeight, false);
   
   if (navigator.getVRDevices) {
     // chromium or similar
@@ -35,6 +45,8 @@ function start() {
     navigator.mozGetVRDevices(vrDeviceCallback);
   } else {
     // no vr support
+    statusHeadline.innerHTML = "No support for webVR";
+    setRenderSize(renderWidth, renderHeight, false);
     animate();
   }
 }
@@ -88,12 +100,15 @@ function initScene() {
  *  user toggled fullscreen mode.
  */
 function setRenderSize(width, height, vrEnabled) {
-  if (vrEnabled) {
+  if (vrHMD) {
     cameraLeft.projectionMatrix = FovToProjection(vrHMD.getRecommendedEyeFieldOfView("left"));
     cameraRight.projectionMatrix = FovToProjection(vrHMD.getRecommendedEyeFieldOfView("right"));
 
     var leftTx = vrHMD.getEyeTranslation("left");
     var rightTx = vrHMD.getEyeTranslation("right");
+    
+    leftTranslationOutput.innerHTML = numObjectToString(leftTx);
+    rightTranslationOutput.innerHTML = numObjectToString(rightTx);
 
     cameraLeft.position.add(new THREE.Vector3(leftTx.x, leftTx.y, leftTx.z));
     cameraRight.position.add(new THREE.Vector3(rightTx.x, rightTx.y, rightTx.z));
@@ -130,14 +145,22 @@ function animate() {
 function render() {
   renderer.enableScissorTest(true);
 
-  if (vrEnabled) {
-    // read the orientation from the HMD, and set the rotation on both cameras
+  if (vrPosDev) {
+    // read the orientation from the HMD, and set the rotation on all cameras
     var state = vrPosDev.getState();
     var qrot = new THREE.Quaternion();
     qrot.set(state.orientation.x, state.orientation.y, state.orientation.z, state.orientation.w);
     cameraLeft.setRotationFromQuaternion(qrot);
     cameraRight.setRotationFromQuaternion(qrot);
 
+    // status output
+    orientationOutput.innerHTML = numObjectToString(state.orientation);
+    positionOutput.innerHTML = numObjectToString(state.position);
+    angularVelocityOutput.innerHTML = numObjectToString(state.angularVelocity);
+    linearVelocityOutput.innerHTML = numObjectToString(state.linearVelocity);
+    angularAccelerationOutput.innerHTML = numObjectToString(state.angularAcceleration);
+    linearAccelerationOutput.innerHTML = numObjectToString(state.linearAcceleration);
+    
     // render left eye
     renderer.setViewport(0, 0, renderWidth, renderHeight);
     renderer.setScissor(0, 0, renderWidth, renderHeight);
@@ -165,8 +188,10 @@ function vrDeviceCallback(vrdevs) {
     }
   }
 
-  if (!vrHMD)
+  if (!vrHMD) {
+   statusHeadline.innerHTML = "No VR device detected!";
    return;
+  }
 
   // Then, find that HMD's position sensor
   for (var i = 0; i < vrdevs.length; ++i) {
@@ -181,8 +206,11 @@ function vrDeviceCallback(vrdevs) {
   if (!vrPosDev) {
     alert("Found a HMD, but didn't find its orientation sensor?");
   }
+  
+  statusHeadline.innerHTML = "VR device detected: " + vrHMD.deviceName;
 
   // kick off rendering
+  setRenderSize(renderWidth, renderHeight, false);
   animate();
 }
 
@@ -223,3 +251,15 @@ function onFullscreenChanged() {
   setRenderSize(renderWidth, renderHeight, vrEnabled);
 }
 
+function numObjectToString(obj) {
+  var str = "";
+  var num;
+  for (attr in obj) {
+    if (obj.hasOwnProperty(attr)) {
+      num = obj[attr].toFixed(5);
+      if (num[0] != "-") num = "+" + num;
+      str += attr + ": " + num + "  ";
+    }
+  }
+  return str;
+}

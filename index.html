@@ -7,10 +7,21 @@
     <link href="style.css" rel="stylesheet">
   </head>
   <body>
-
-    <button onclick="toggleFullscreen();">Toggle Fullscreen VR (f)</button>
-    
     <div id="container"></div>
+    <div id="info">
+      <h1></h1>
+      <button onclick="toggleFullscreen();">Toggle Fullscreen VR (f)</button>
+      <ul>
+        <li>Left Eye Offset: <span id="leftTranslation">-</span></li>
+        <li>Right Eye Offset: <span id="rightTranslation">-</span></li>
+        <li>Orientation: <span id="orientation">-</span></li>
+        <li>Position: <span id="position">-</span></li>
+        <li>AngularVelocity: <span id="angularVelocity">-</span></li>
+        <li>LinearVelocity: <span id="linearVelocity">-</span></li>
+        <li>AngularAcceleration: <span id="angularAcceleration">-</span></li>
+        <li>LinearAcceleration: <span id="linearAcceleration">-</span></li>
+      </ul>
+    </div>
     
     <script src="lib/three.js"></script>
     <script src="vrutils.js"></script>
